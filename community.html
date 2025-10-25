@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThinkPlus Community — Discussions</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --violet: #7c3aed;
+      --cyan: #06b6d4;
+      --bg: #050813;
+      --card: rgba(255,255,255,0.03);
+      --muted: #b9c6d8;
+    }
+    html,body { height: 100%; }
+    body{
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:0;
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%),
+        var(--bg);
+      color: #e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow-x: hidden;
+    }
+
+    .neon {
+      color: white;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06);
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(6px);
+    }
+
+    .accent {
+      height: 4px;
+      width: 64px;
+      border-radius: 999px;
+      background: linear-gradient(90deg,var(--violet),var(--cyan));
+      box-shadow: 0 8px 40px rgba(6,182,212,0.06);
+    }
+
+    .float {
+      position: absolute;
+      filter: blur(28px);
+      opacity: 0.25;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .cta {
+      background: linear-gradient(90deg,var(--violet),var(--cyan));
+      color: #05060a;
+      box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06);
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(124,58,237,0.3);
+    }
+
+    .discussion-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .discussion-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(6,182,212,0.08);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(124,58,237,0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(6,182,212,0.2);
+    }
+
+    /* Light theme */
+    html.light body {
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(240,240,255,0.13), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(192,232,244,0.12), transparent 6%),
+        #f4f6fc;
+      color: #232a3b;
+    }
+    html.light .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.26), rgba(242,242,242,0.14));
+      border: 1px solid rgba(60,58,90,0.06);
+      backdrop-filter: blur(6px);
+    }
+    html.light .neon { color: #253154; text-shadow: 0 2px 20px rgba(90,58,237,0.11), 0 0 6px rgba(6,182,212,0.07); }
+    html.light .cta { color: #fff; background: linear-gradient(90deg,var(--violet),var(--cyan)); }
+    html.light .text-slate-300, html.light .text-slate-300\/90 { color: #586585!important; }
+    html.light .text-white { color: #253154!important; }
+    html.light .text-black { color: #21242d!important; }
+    html.light footer, html.light header { background: transparent!important; }
+  </style>
+</head>
+<body>
+
+  <!-- decorative floating glows -->
+  <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div>
+  <div class="float" style="right:-80px;top:56%;width:380px;height:380px;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+
+  <!-- Theme & Language toggles -->
+  <div style="position:fixed;top:32px;right:32px;z-index:999;display:flex;gap:12px">
+    <button id="theme-toggle" class="glass px-3 py-1 rounded">🌙 Dark</button>
+    <button id="lang-toggle" class="glass px-3 py-1 rounded">हिंदी</button>
+  </div>
+
+  <!-- header -->
+  <header class="fixed w-full z-40 top-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="p-2 rounded-md glass">
+          <div class="neon text-xl px-3 py-1 rounded font-semibold">Think<span style="color:var(--cyan)">Plus</span></div>
+        </div>
+        <nav class="hidden md:flex gap-6 text-slate-300">
+          <a href="getstarted.html" class="hover:text-white transition">Courses</a>
+          
+          <a href="insighgt.html" class="hover:text-white transition">Insights</a>
+          <a href="thinkplus2.html" class="hover:text-white transition">Home</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <a class="px-4 py-2 rounded-md text-sm font-semibold cta" href="#">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- main content -->
+  <main class="relative z-10 pt-32 pb-20">
+    <div class="max-w-6xl mx-auto px-6">
+      
+      <!-- Hero Section -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl lg:text-5xl font-extrabold mb-4">Community Discussions</h1>
+        <p class="text-slate-300 text-lg max-w-2xl mx-auto">Join the conversation. Ask questions, share insights, and connect with fellow learners preparing for competitive exams.</p>
+        <div class="mt-6">
+          <div class="accent mx-auto"></div>
+        </div>
+      </div>
+
+      <!-- Discussion Cards -->
+      <div class="space-y-6">
+
+        <!-- Discussion 1 -->
+        <article class="glass p-6 rounded-2xl shadow-lg discussion-card">
+          <div class="flex items-start gap-4">
+            <img src="https://i.pravatar.cc/150?img=12" alt="Priya Sharma" class="avatar">
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-white font-semibold text-lg">Priya Sharma</h3>
+                  <p class="text-slate-300 text-sm">2 hours ago</p>
+                </div>
+                <span class="badge">CAT Prep</span>
+              </div>
+              <p class="text-slate-300 mb-4">
+                Has anyone tried the new quantitative aptitude module? I'm finding the data interpretation section really challenging. Any tips on how to improve speed without sacrificing accuracy?
+              </p>
+              <div class="flex items-center gap-6 text-sm text-slate-300">
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>24 replies</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 10v12M15 5v17M2 10h10M9 5h12"/>
+                  </svg>
+                  <span>156 views</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Discussion 2 -->
+        <article class="glass p-6 rounded-2xl shadow-lg discussion-card">
+          <div class="flex items-start gap-4">
+            <img src="https://i.pravatar.cc/150?img=33" alt="Rahul Verma" class="avatar">
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-white font-semibold text-lg">Rahul Verma</h3>
+                  <p class="text-slate-300 text-sm">5 hours ago</p>
+                </div>
+                <span class="badge">IPMAT</span>
+              </div>
+              <p class="text-slate-300 mb-4">
+                Just completed my first mock test and scored 85/100! 🎉 The personalized study plan really helped me focus on my weak areas. Shoutout to the mentors for the amazing guidance!
+              </p>
+              <div class="flex items-center gap-6 text-sm text-slate-300">
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>18 replies</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 10v12M15 5v17M2 10h10M9 5h12"/>
+                  </svg>
+                  <span>92 views</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Discussion 3 -->
+        <article class="glass p-6 rounded-2xl shadow-lg discussion-card">
+          <div class="flex items-start gap-4">
+            <img src="https://i.pravatar.cc/150?img=47" alt="Ananya Reddy" class="avatar">
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-white font-semibold text-lg">Ananya Reddy</h3>
+                  <p class="text-slate-300 text-sm">1 day ago</p>
+                </div>
+                <span class="badge">CLAT</span>
+              </div>
+              <p class="text-slate-300 mb-4">
+                Need recommendations for legal reasoning practice. I'm comfortable with logical reasoning but struggling with legal case studies. Anyone has good resources or strategies?
+              </p>
+              <div class="flex items-center gap-6 text-sm text-slate-300">
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>31 replies</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 10v12M15 5v17M2 10h10M9 5h12"/>
+                  </svg>
+                  <span>203 views</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Discussion 4 -->
+        <article class="glass p-6 rounded-2xl shadow-lg discussion-card">
+          <div class="flex items-start gap-4">
+            <img src="https://i.pravatar.cc/150?img=68" alt="Karan Mehta" class="avatar">
+            <div class="flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-white font-semibold text-lg">Karan Mehta</h3>
+                  <p class="text-slate-300 text-sm">2 days ago</p>
+                </div>
+                <span class="badge">General</span>
+              </div>
+              <p class="text-slate-300 mb-4">
+                Does anyone else feel overwhelmed with the amount of content to cover? Looking for effective time management strategies. How do you balance mock tests, revision, and learning new topics?
+              </p>
+              <div class="flex items-center gap-6 text-sm text-slate-300">
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>42 replies</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-cyan-400 transition">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 10v12M15 5v17M2 10h10M9 5h12"/>
+                  </svg>
+                  <span>287 views</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- CTA Section -->
+      <div class="mt-16 text-center glass p-8 rounded-2xl">
+        <h2 class="text-2xl font-bold mb-4">Start Your Own Discussion</h2>
+        <p class="text-slate-300 mb-6">Have a question or want to share your experience? Join our community!</p>
+        <a href="#" class="inline-block px-6 py-3 rounded-md font-semibold cta">Create New Topic</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- footer -->
+  <footer class="py-12 border-t border-white/6">
+    <div class="max-w-7xl mx-auto px-6 text-center text-slate-300">
+      <div class="mb-4">© 2025 ThinkPlus. All Rights Reserved.</div>
+      <div class="text-sm">Join our community and achieve your exam goals together.</div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Theme toggle
+    document.getElementById('theme-toggle').onclick = function() {
+      const html = document.documentElement;
+      const isLight = html.classList.contains('light');
+      html.classList.toggle('light');
+      this.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+    }
+
+    // Language toggle (basic structure - can be expanded)
+    document.getElementById('lang-toggle').onclick = function() {
+      const currentLang = this.textContent;
+      this.textContent = currentLang === 'हिंदी' ? 'English' : 'हिंदी';
+      // Add translation logic here
+    }
+
+    // Animate discussion cards on scroll
+    gsap.utils.toArray('.discussion-card').forEach((card, i) => {
+      gsap.from(card, {
+        scrollTrigger: { trigger: card, start: "top 85%" },
+        y: 30, opacity: 0, duration: 0.9, ease: "power3.out", delay: i*0.1
+      });
+    });
+
+    // Header hide/show on scroll
+    (function headerScroll(){
+      let last = 0;
+      const header = document.querySelector('header');
+      addEventListener('scroll', () => {
+        const cur = pageYOffset;
+        if (cur > last && cur > 80) gsap.to(header, {y:-86, duration:0.35, ease:"power2.out"});
+        else gsap.to(header, {y:0, duration:0.35, ease:"power2.out"});
+        last = cur;
+      });
+    })();
+  </script>
+</body>
+</html>
