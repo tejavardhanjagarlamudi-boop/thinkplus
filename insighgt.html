@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Insights — ThinkPlus</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  
+  <style>
+    :root {
+      --violet: #7c3aed;
+      --cyan: #06b6d4;
+      --bg: #050813;
+      --bg-light: #ecf1fc;
+      --headline-dark: #e6eef6;
+      --headline-light: #26324b;
+      --desc-dark: #b9c6d8;
+      --desc-light: #5f6b7a;
+    }
+    html,body { height: 100%; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:0;
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%),
+        var(--bg);
+      color: var(--headline-dark);
+      -webkit-font-smoothing:antialiased;
+      overflow-x: hidden;
+      transition: background 0.55s cubic-bezier(.4,2,.2,1), color 0.32s;
+    }
+    body.light-mode {
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.085), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.13), transparent 6%),
+        var(--bg-light);
+      color: var(--headline-light);
+    }
+    .neon { color: white; font-weight: 700; letter-spacing: -0.02em; text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06); }
+    body.light-mode .neon { color: var(--headline-light); text-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(10px); transition: all 0.3s; }
+    body.light-mode .glass { background: rgba(255,255,255,0.6); border: 1px solid rgba(70,90,120,0.15); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .cta { background: linear-gradient(90deg,var(--violet),var(--cyan)); color: #fff; box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06); transition: all 0.3s; }
+    .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(6,182,212,0.18), 0 4px 12px rgba(124,58,237,0.09); }
+    .float { position: absolute; filter: blur(28px); opacity: 0.25; pointer-events: none; mix-blend-mode: screen; transition: opacity 0.5s; }
+    body.light-mode .float { opacity: 0.15;}
+    .tilt { transform-style: preserve-3d; will-change: transform; backface-visibility: hidden;}
+    .text-slate-300 { color: var(--desc-dark); transition: color 0.3s;}
+    body.light-mode .text-slate-300 { color: var(--desc-light);}
+    .text-white { color: var(--headline-dark); transition: color 0.3s;}
+    body.light-mode .text-white { color: var(--headline-light);}
+    body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4 { color: var(--headline-light);}
+    #bg3d-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1; }
+    
+    /* Insight Card Styles */
+    .insight-card {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .insight-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(124,58,237,0.15);
+    }
+    .insight-card img {
+      transition: transform 0.6s ease;
+    }
+    .insight-card:hover img {
+      transform: scale(1.05);
+    }
+    .category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-exam { background: linear-gradient(90deg, #f59e0b, #ef4444); color: white; }
+    .badge-tips { background: linear-gradient(90deg, #10b981, #06b6d4); color: white; }
+    .badge-strategy { background: linear-gradient(90deg, #8b5cf6, #ec4899); color: white; }
+    .badge-news { background: linear-gradient(90deg, #06b6d4, #7c3aed); color: white; }
+    
+    .filter-btn {
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .filter-btn.active {
+      background: linear-gradient(90deg, var(--violet), var(--cyan));
+      color: white;
+      border-color: transparent;
+    }
+    body.light-mode .filter-btn {
+      border-color: rgba(70,90,120,0.2);
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    body.light-mode .chip {
+      border-color: rgba(70,90,120,0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- 3D background -->
+  <canvas id="bg3d-canvas"></canvas>
+  
+  <!-- Decorative glows -->
+  <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div>
+  <div class="float" style="width:380px;height:380px;right:-80px;top:56%;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+  
+  <!-- Particle canvas -->
+  <canvas id="particle-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+  <!-- Header -->
+  <header class="fixed w-full z-40 top-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="p-2 rounded-md glass">
+          <a href="index.html" class="neon text-xl px-3 py-1 rounded font-semibold">Think<span style="color:var(--cyan)">Plus</span></a>
+        </div>
+        <nav class="hidden md:flex gap-6 text-slate-300">
+          <a href="thinkplus2.html" class="hover:text-white transition">Home</a>
+          <a href="getstarted.html" class="hover:text-white transition">Courses</a>
+          <a href="insighgt.html" class="text-white font-semibold">Insights</a>
+          <a href="contact.html" class="hover:text-white transition">Contact</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="theme-toggle" class="px-4 py-2 rounded-md text-sm glass hover:scale-105 transition">🌗 Theme</button>
+        <a href="login.html" class="px-4 py-2 rounded-md text-sm font-semibold cta">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="relative z-10">
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="inline-flex chip glass mb-4">
+          <span class="w-2 h-2 rounded-full" style="background:linear-gradient(90deg,var(--violet),var(--cyan));"></span>
+          <span class="text-slate-300">Stay Updated</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Insights & Tips</h1>
+        <p class="text-slate-300 max-w-2xl text-lg">Expert advice, exam strategies, and success stories to help you ace competitive exams</p>
+
+        <!-- Filter Buttons -->
+        <div class="flex flex-wrap gap-3 mt-8">
+          <button class="filter-btn active glass" data-filter="all">All Articles</button>
+          <button class="filter-btn glass" data-filter="exam">Exam Updates</button>
+          <button class="filter-btn glass" data-filter="tips">Study Tips</button>
+          <button class="filter-btn glass" data-filter="strategy">Strategy</button>
+          <button class="filter-btn glass" data-filter="news">News</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Article -->
+    <section class="pb-12 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="glass rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 gap-0 insight-card" data-animate>
+          <div class="relative h-64 lg:h-auto overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80" alt="Featured" class="w-full h-full object-cover">
+            <div class="absolute top-4 left-4">
+              <span class="category-badge badge-exam">Featured</span>
+            </div>
+          </div>
+          <div class="p-8 lg:p-12 flex flex-col justify-center">
+            <div class="flex items-center gap-4 text-sm text-slate-300 mb-4">
+              <span>📅 Oct 20, 2025</span>
+              <span>•</span>
+              <span>⏱️ 8 min read</span>
+            </div>
+            <h2 class="text-3xl font-bold mb-4">CAT 2025: Complete Preparation Strategy</h2>
+            <p class="text-slate-300 mb-6">Master the Common Admission Test with our comprehensive guide covering all sections, time management tips, and mock test strategies from IIM toppers.</p>
+            <a href="#" class="inline-flex items-center gap-2 text-cyan-400 hover:text-violet-400 transition font-semibold">
+              Read Full Article
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Insights Grid -->
+    <section class="pb-24 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="insights-grid">
+          
+          <!-- Article 1 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="tips" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80" alt="Study Tips" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-tips">Study Tips</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 18, 2025</span>
+                <span>•</span>
+                <span>⏱️ 5 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">10 Proven Study Techniques for CAT Aspirants</h3>
+              <p class="text-slate-300 text-sm mb-4">Discover time-tested methods to boost your preparation and maximize retention...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font
+                 <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 2 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="exam" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="download.jpg" alt="CLAT Updates" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-exam">Exam Update</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 15, 2025</span>
+                <span>•</span>
+                <span>⏱️ 6 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">CLAT 2025: Important Dates and Pattern Changes</h3>
+              <p class="text-slate-300 text-sm mb-4">Stay updated with the latest CLAT exam schedule and understand new pattern modifications...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 3 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="strategy" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80" alt="Strategy" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-strategy">Strategy</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 12, 2025</span>
+                <span>•</span>
+                <span>⏱️ 7 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">Time Management Mastery for IPMAT</h3>
+              <p class="text-slate-300 text-sm mb-4">Learn how to allocate time effectively across sections to maximize your score...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 4 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="news" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="Success Story" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-news">Success Story</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 10, 2025</span>
+                <span>•</span>
+                <span>⏱️ 10 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">How Priya Scored 99.8 Percentile in CAT</h3>
+              <p class="text-slate-300 text-sm mb-4">An inspiring journey from preparation struggles to IIM admission success...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 5 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="tips" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="Mental Health" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-tips">Wellness</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 8, 2025</span>
+                <span>•</span>
+                <span>⏱️ 6 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">Managing Exam Stress: Mental Health Tips</h3>
+              <p class="text-slate-300 text-sm mb-4">Essential techniques to stay calm and focused during your preparation journey...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 6 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="strategy" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80" alt="Mock Tests" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-strategy">Strategy</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 5, 2025</span>
+                <span>•</span>
+                <span>⏱️ 8 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">Mock Test Analysis: The Right Way</h3>
+              <p class="text-slate-300 text-sm mb-4">How to analyze your mock tests to identify weak areas and improve scores...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 7 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="exam" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=800&q=80" alt="IPMAT News" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-exam">News</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 3, 2025</span>
+                <span>•</span>
+                <span>⏱️ 5 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">IPMAT 2026: Registration Opens Soon</h3>
+              <p class="text-slate-300 text-sm mb-4">Get ready for IPMAT registration with important dates and eligibility criteria...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 8 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="tips" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80" alt="Reading" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-tips">Reading</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Oct 1, 2025</span>
+                <span>•</span>
+                <span>⏱️ 7 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">Improve Reading Speed for CLAT</h3>
+              <p class="text-slate-300 text-sm mb-4">Proven techniques to enhance your reading comprehension and speed...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+          <!-- Article 9 -->
+          <article class="insight-card glass rounded-2xl overflow-hidden" data-category="strategy" data-animate>
+            <div class="relative h-48 overflow-hidden">
+              <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80" alt="Last Month" class="w-full h-full object-cover">
+              <div class="absolute top-4 left-4">
+                <span class="category-badge badge-strategy">Last Mile</span>
+              </div>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-3 text-xs text-slate-300 mb-3">
+                <span>📅 Sep 28, 2025</span>
+                <span>•</span>
+                <span>⏱️ 9 min</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">Last Month Strategy Before CAT</h3>
+              <p class="text-slate-300 text-sm mb-4">What to focus on in the final 30 days before the big exam day...</p>
+              <a href="#" class="text-sm text-cyan-400 hover:text-violet-400 transition font-semibold">Read More →</a>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Load More Button -->
+        <div class="text-center mt-12">
+          <button class="px-8 py-3 rounded-lg font-semibold glass hover:scale-105 transition">
+            Load More Articles
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="pb-24 px-6">
+      <div class="max-w-4xl mx-auto">
+        <div class="glass rounded-3xl p-12 text-center relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-cyan-500/10"></div>
+          <div class="relative z-10">
+            <h2 class="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
+            <p class="text-slate-300 mb-6 max-w-xl mx-auto">Get weekly exam tips, study strategies, and success stories delivered to your inbox</p>
+            <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                class="flex-1 px-4 py-3 rounded-lg glass border-0 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                style="background: rgba(255,255,255,0.05);"
+              />
+              <button type="submit" class="px-6 py-3 rounded-lg font-semibold cta whitespace-nowrap">
+                Subscribe
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-white/6">
+    <div class="max-w-7xl mx-auto px-6 text-center text-slate-300">
+      <div class="mb-4">© 2025 ThinkPlus. All Rights Reserved.</div>
+      <div class="text-sm">Empowering students to achieve their dreams</div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // ---- 3D BACKGROUND SCENE ----
+    let mode = 'dark';
+    let scene, camera, renderer, objects = [], lights = [];
+
+    function setupScene(theme) {
+      if(scene){ 
+        while(scene.children.length) scene.remove(scene.children[0]);
+        objects = [];
+        lights = [];
+      }
+      if(!scene){
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 7);
+        renderer = new THREE.WebGLRenderer({canvas:document.getElementById('bg3d-canvas'), alpha: true, antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+
+      let amb, dir;
+      if(theme === 'light'){
+        amb = new THREE.AmbientLight(0xf9fafb, 0.7);
+        scene.background = new THREE.Color(0xecf1fc);
+        dir = new THREE.DirectionalLight(0x5ed0f8, 0.34);
+        dir.position.set(0, 1, 2);
+      } else {
+        amb = new THREE.AmbientLight(0x7c3aed, 0.49);
+        scene.background = new THREE.Color(0x050813);
+        dir = new THREE.DirectionalLight(0x06b6d4, 0.25);
+        dir.position.set(0, 1, 1);
+      }
+      scene.add(amb); lights.push(amb);
+      scene.add(dir); lights.push(dir);
+
+      for(let i=0;i<12;i++){
+        const geo = i % 2 === 0 ? new THREE.SphereGeometry(0.65 + Math.random()*0.36, 44, 24) : new THREE.;
+        const geo = i % 2 === 0 ? new THREE.SphereGeometry(0.65 + Math.random()*0.36, 44, 24) : new THREE.TorusGeometry(0.31 + Math.random()*0.25, 0.11, 16, 44);
+        const isLight = theme === 'light';
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: i % 2 === 0 ? (isLight? 0x6e65fa : 0x7c3aed) : (isLight? 0x53b1fd : 0x06b6d4),
+          roughness: 0.39,
+          metalness: 0.25,
+          clearcoat: 0.6,
+          transparent: true,
+          opacity: 0.17 + Math.random()*0.18,
+          emissive: i % 2 === 0 ? (isLight? 0xe0dafb : 0x7c3aed) : (isLight? 0xcfecfd : 0x06b6d4),
+          emissiveIntensity: isLight ? 0.12+Math.random()*0.18 : 0.15+Math.random()*0.12
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set((Math.random()-0.5)*7, (Math.random()-0.5)*5, (Math.random()-0.5)*3.5);
+        mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+        scene.add(mesh);
+        objects.push(mesh);
+      }
+    }
+
+    function animateBG() {
+      if(objects){
+        objects.forEach((obj,i)=>{
+          obj.position.y += Math.sin(Date.now()*0.001+i)*0.004;
+          obj.rotation.y += 0.005 + i*0.001;
+          obj.rotation.x += 0.003 + i*0.001;
+        });
+      }
+      camera.position.z = 7 + Math.sin(Date.now()*0.0004)*0.5;
+      if(camera && renderer && scene) renderer.render(scene, camera);
+      requestAnimationFrame(animateBG);
+    }
+
+    window.addEventListener('resize', function(){
+      if(camera && renderer){
+        camera.aspect = window.innerWidth/window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+    });
+
+    setupScene('dark');
+    animateBG();
+
+    // Theme toggle
+    document.getElementById('theme-toggle').onclick = function() {
+      mode = (mode === 'dark') ? 'light' : 'dark';
+      document.body.classList.toggle('light-mode');
+      setupScene(mode);
+    };
+
+    // --- Particles canvas ---
+    (function initParticles(){
+      const c = document.getElementById('particle-canvas');
+      const ctx = c.getContext('2d');
+      let w = c.width = innerWidth, h = c.height = innerHeight;
+      const N = Math.floor((w*h)/70000) + 30;
+      const particles = [];
+      for(let i=0;i<N;i++){
+        particles.push({
+          x: Math.random()*w, 
+          y: Math.random()*h, 
+          r: 8 * Math.random() + 1.2, 
+          vx: (Math.random()-0.5)*0.1, 
+          vy: (Math.random()-0.5)*0.1
+        });
+      }
+      function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; }
+      addEventListener('resize', resize);
+      
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(const p of particles){
+          p.x += p.vx; 
+          p.y += p.vy;
+          if(p.x < -50) p.x = w+50; 
+          if(p.x > w+50) p.x = -50;
+          if(p.y < -50) p.y = h+50; 
+          if(p.y > h+50) p.y = -50;
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+          g.addColorStop(0, 'rgba(124,58,237,0.12)');
+          g.addColorStop(0.4, 'rgba(6,182,212,0.06)');
+          g.addColorStop(1, 'rgba(6,182,212,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); 
+          ctx.arc(p.x, p.y, p.r*8, 0, Math.PI*2); 
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // --- GSAP Animations ---
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero animations
+    gsap.from("section:first-of-type > div > *", {
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: "power3.out",
+      delay: 0.2
+    });
+
+    // Insight cards reveal
+    gsap.utils.toArray('[data-animate]').forEach((el, i) => {
+      gsap.from(el, {
+        scrollTrigger: { 
+          trigger: el, 
+          start: "top 85%",
+          toggleActions: "play none none none"
+        },
+        y: 40, 
+        opacity: 0, 
+        duration: 0.9, 
+        ease: "power3.out", 
+        delay: i * 0.08
+      });
+    });
+
+    // Tilt effect on insight cards
+    const tiltEls = document.querySelectorAll('.tilt');
+    tiltEls.forEach(el => {
+      el.addEventListener('pointermove', (ev) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dx = (ev.clientX - cx) / rect.width;
+        const dy = (ev.clientY - cy) / rect.height;
+        gsap.to(el, {
+          rotationY: dx * 4, 
+          rotationX: -dy * 4, 
+          transformPerspective: 1000, 
+          transformOrigin: "center", 
+          duration: 0.3, 
+          ease: "power3.out"
+        });
+      });
+      
+      el.addEventListener('pointerleave', () => {
+        gsap.to(el, {
+          rotationY: 0, 
+          rotationX: 0, 
+          duration: 0.5, 
+          ease: "power2.out"
+        });
+      });
+    });
+
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const insightCards = document.querySelectorAll('.insight-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        filterBtns.forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        this.classList.add('active');
+
+        const filter = this.getAttribute('data-filter');
+
+        insightCards.forEach(card => {
+          const category = card.getAttribute('data-category');
+          
+          if (filter === 'all' || category === filter) {
+            gsap.to(card, {
+              opacity: 1,
+              scale: 1,
+              display: 'block',
+              duration: 0.4,
+              ease: "power2.out"
+            });
+          } else {
+            gsap.to(card, {
+              opacity: 0,
+              scale: 0.9,
+              duration: 0.3,
+              ease: "power2.in",
+              onComplete: () => {
+                card.style.display = 'none';
+              }
+            });
+          }
+        });
+      });
+    });
+
+    // Parallax effect
+    gsap.to('.float', {
+      yPercent: -10,
+      ease: "none",
+      scrollTrigger: { 
+        trigger: document.body, 
+        start: 0, 
+        end: "max", 
+        scrub: 0.8 
+      }
+    });
+
+    // Header scroll effect
+    let lastScroll = 0;
+    const header = document.querySelector('header');
+    
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      
+      if (currentScroll > lastScroll && currentScroll > 100) {
+        gsap.to(header, {y: -100, duration: 0.3, ease: "power2.out"});
+      } else {
+        gsap.to(header, {y: 0, duration: 0.3, ease: "power2.out"});
+      }
+      
+      lastScroll = currentScroll;
+    });
+
+    // Newsletter form submission
+    const newsletterForm = document.querySelector('form');
+    if(newsletterForm) {
+      newsletterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = this.querySelector('input[type="email"]').value;
+        
+        // Show success message
+        alert('Thank you for subscribing! You will receive our newsletter at: ' + email);
+        this.reset();
+      });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

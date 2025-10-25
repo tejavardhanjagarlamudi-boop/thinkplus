@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Our Courses — ThinkPlus</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  
+  <style>
+    :root {
+      --violet: #7c3aed;
+      --cyan: #06b6d4;
+      --bg: #050813;
+      --bg-light: #ecf1fc;
+      --headline-dark: #e6eef6;
+      --headline-light: #26324b;
+      --desc-dark: #b9c6d8;
+      --desc-light: #5f6b7a;
+    }
+    html,body { height: 100%; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:0;
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%),
+        var(--bg);
+      color: var(--headline-dark);
+      -webkit-font-smoothing:antialiased;
+      overflow-x: hidden;
+      transition: background 0.55s cubic-bezier(.4,2,.2,1), color 0.32s;
+    }
+    body.light-mode {
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.085), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.13), transparent 6%),
+        var(--bg-light);
+      color: var(--headline-light);
+    }
+    .neon { color: white; font-weight: 700; letter-spacing: -0.02em; text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06); }
+    body.light-mode .neon { color: var(--headline-light); text-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.04); backdrop-filter: blur(12px); transition: all 0.3s;}
+    body.light-mode .glass { background: rgba(255,255,255,0.65); border: 1px solid rgba(70,90,120,0.12); box-shadow: 0 8px 32px rgba(0,0,0,0.06);}
+    .cta { background: linear-gradient(90deg,var(--violet),var(--cyan)); color: #fff; box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06); transition: all 0.3s;}
+    .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(6,182,212,0.18), 0 4px 12px rgba(124,58,237,0.09); }
+    .float { position: absolute; filter: blur(28px);opacity: 0.25; pointer-events: none; mix-blend-mode: screen; transition: opacity 0.5s;}
+    body.light-mode .float { opacity: 0.15;}
+    .tilt { transform-style: preserve-3d; will-change: transform; backface-visibility: hidden;}
+    .text-slate-300 { color: var(--desc-dark); transition: color 0.3s;}
+    body.light-mode .text-slate-300 { color: var(--desc-light);}
+    .text-white { color: var(--headline-dark); transition: color 0.3s;}
+    body.light-mode .text-white { color: var(--headline-light);}
+    body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4 { color: var(--headline-light);}
+    #bg3d-canvas {position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;}
+    
+    .course-card {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .course-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(124,58,237,0.15);
+    }
+    .course-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-popular { background: linear-gradient(90deg, #f59e0b, #ef4444); color: white; }
+    .badge-new { background: linear-gradient(90deg, #10b981, #06b6d4); color: white; }
+    .badge-trending { background: linear-gradient(90deg, #8b5cf6, #ec4899); color: white; }
+    
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      box-shadow: 0 8px 24px rgba(124,58,237,0.2);
+    }
+    
+    .filter-btn {
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .filter-btn.active {
+      background: linear-gradient(90deg, var(--violet), var(--cyan));
+      color: white;
+      border-color: transparent;
+    }
+    body.light-mode .filter-btn {
+      border-color: rgba(70,90,120,0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- 3D background -->
+  <canvas id="bg3d-canvas"></canvas>
+  
+  <!-- Decorative glows -->
+  <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div>
+  <div class="float" style="width:380px;height:380px;right:-80px;top:56%;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+  
+  <!-- Particle canvas -->
+  <canvas id="particle-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+  <!-- Header -->
+  <header class="fixed w-full z-40 top-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="p-2 rounded-md glass">
+          <a href="index.html" class="neon text-xl px-3 py-1 rounded font-semibold">Think<span style="color:var(--cyan)">Plus</span></a>
+        </div>
+        <nav class="hidden md:flex gap-6 text-slate-300">
+          <a href="thinkplus1.html" class="hover:text-white transition">Home</a>
+          <a href="courses.html" class="text-white font-semibold">Courses</a>
+          <a href="#" class="hover:text-white transition">About</a>
+          <a href="#" class="hover:text-white transition">Contact</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="theme-toggle" class="px-4 py-2 rounded-md text-sm glass hover:scale-105 transition">🌗</button>
+        <a href="login.html" class="px-4 py-2 rounded-md text-sm font-semibold cta">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="relative z-10">
+    <!-- Hero Section -->
+    <section class="pt-32 pb-16 px-6">
+      <div class="max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
+          <span class="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-cyan-500"></span>
+          <span class="text-sm text-slate-300">Premium Exam Preparation</span>
+        </div>
+        
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-6">
+          Explore Our <span style="background: linear-gradient(90deg,var(--violet),var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent;">Courses</span>
+        </h1>
+        
+        <p class="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
+          Expert-led courses designed to help you crack competitive exams with confidence. Choose your path to success.
+        </p>
+
+        <!-- Filter Buttons -->
+        <div class="flex flex-wrap justify-center gap-3 mb-12">
+          <button class="filter-btn active glass" data-filter="all">All Courses</button>
+          <button class="filter-btn glass" data-filter="management">Management</button>
+          <button class="filter-btn glass" data-filter="law">Law</button>
+          <button class="filter-btn glass" data-filter="aptitude">Aptitude</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Courses Grid -->
+    <section class="pb-20 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="courses-grid">
+          
+          <!-- CAT Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="management" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+              </div>
+              <span class="course-badge badge-popular">Popular</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">CAT Preparation</h3>
+            <p class="text-slate-300 text-sm mb-4">Complete preparation for Common Admission Test to top IIMs</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>6 months duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>5000+ students enrolled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>4.8/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free taril</span>
+                <span class="text-slate-300 text-sm line-through ml-2">₹19,999
+                             
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+          <!-- IPMAT Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="management" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+              </div>
+              <span class="course-badge badge-new">New</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">IPMAT Preparation</h3>
+            <p class="text-slate-300 text-sm mb-4">Integrated Program in Management Aptitude Test for IIM Indore & Rohtak</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>4 months duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>3200+ students enrolled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>4.9/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold mb-2 text-white">What you'll learn:</h4>
+              <ul class="space-y-1 text-xs text-slate-300">
+                <li>✓ Quantitative Ability & Data Interpretation</li>
+                <li>✓ Verbal Ability & Reading Comprehension</li>
+                <li>✓ 50+ Mock Tests & Practice Papers</li>
+              </ul>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free trail</span>
+                <span class="text-slate-300 text-sm line-through ml-2">₹14,999</span>
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+          <!-- CLAT Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="law" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <span class="course-badge badge-trending">Trending</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">CLAT Preparation</h3>
+            <p class="text-slate-300 text-sm mb-4">Common Law Admission Test preparation for National Law Universities</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>5 months duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>4100+ students enrolled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>4.7/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold mb-2 text-white">What you'll learn:</h4>
+              <ul class="space-y-1 text-xs text-slate-300">
+                <li>✓ English Language & Comprehension</li>
+                <li>✓ Current Affairs & General Knowledge</li>
+                <li>✓ Legal Reasoning & Logical Reasoning</li>
+                <li>✓ Quantitative Techniques</li>
+              </ul>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free trail</span>
+                <span class="text-slate-300 text-sm line-through ml-2">₹17,999</span>
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+          <!-- IQ+ Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="aptitude" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                  <path d="M2 17l10 5 10-5"></path>
+                  <path d="M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <span class="course-badge badge-new">New</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">IQ+ Foundation</h3>
+            <p class="text-slate-300 text-sm mb-4">Build strong fundamentals in quantitative aptitude and logical reasoning</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>3 months duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>2800+ students enrolled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>4.6/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold mb-2 text-white">What you'll learn:</h4>
+              <ul class="space-y-1 text-xs text-slate-300">
+                <li>✓ Mental Ability & Problem Solving</li>
+                <li>✓ Quantitative Aptitude Basics</li>
+                <li>✓ Pattern Recognition & Logical Thinking</li>
+                <li>✓ Speed Math Techniques</li>
+              </ul>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free trail</span>
+                <span class="text-slate-300 text-sm line-through ml-2">₹9,999</span>
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+          <!-- Career Counselling Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="aptitude" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <span class="course-badge badge-popular">Popular</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">Career Counselling</h3>
+            <p class="text-slate-300 text-sm mb-4">One-on-one guidance to choose the right career path and exam strategy</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Flexible duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3
+                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>1500+ students counselled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>4.9/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold mb-2 text-white">What you'll get:</h4>
+              <ul class="space-y-1 text-xs text-slate-300">
+                <li>✓ Personalized Career Assessment</li>
+                <li>✓ Expert Guidance from IIM Alumni</li>
+                <li>✓ Study Plan & Strategy Sessions</li>
+                <li>✓ Mock Interview Preparation</li>
+              </ul>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free trail</span>
+                <span class="text-slate-300 text-sm line-through ml-2">₹7,999</span>
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+          <!-- Advanced CAT Course -->
+          <div class="course-card glass rounded-2xl p-6 shadow-xl tilt" data-category="management" data-animate>
+            <div class="flex items-start justify-between mb-4">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                </svg>
+              </div>
+              <span class="course-badge badge-trending">Trending</span>
+            </div>
+            
+            <h3 class="text-2xl font-bold mb-2">CAT Advanced Batch</h3>
+            <p class="text-slate-300 text-sm mb-4">Intensive preparation for serious aspirants targeting 99+ percentile</p>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>8 months duration</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>2100+ students enrolled</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-slate-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>5.0/5 rating</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold mb-2 text-white">What you'll learn:</h4>
+              <ul class="space-y-1 text-xs text-slate-300">
+                <li>✓ Advanced Problem Solving Techniques</li>
+                <li>✓ 100+ Full-Length Mock Tests</li>
+                <li>✓ Personal Mentorship from IIM Faculty</li>
+                <li>✓ Interview & GD Preparation</li>
+              </ul>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">Free trail</span>
+                <span class="text-slate-300 text-sm line-through ml-2">30,000</span>
+              </div>
+              <button class="px-4 py-2 rounded-lg font-semibold cta text-sm">Start Learning</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="py-20 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold mb-4">Why Choose ThinkPlus?</h2>
+          <p class="text-slate-300 text-lg max-w-2xl mx-auto">We're committed to your success with proven methods and expert guidance</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="glass rounded-2xl p-6 text-center" data-animate>
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--violet),var(--cyan));">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Expert Faculty</h3>
+            <p class="text-slate-300 text-sm">Learn from IIM & NLU alumni with years of teaching experience</p>
+          </div>
+
+          <div class="glass rounded-2xl p-6 text-center" data-animate>
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--cyan),var(--violet));">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Proven Results</h3>
+            <p class="text-slate-300 text-sm">500+ IIM selections and 300+ NLU admissions in 2024</p>
+          </div>
+
+          <div class="glass rounded-2xl p-6 text-center" data-animate>
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--violet),var(--cyan));">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Personalized Learning</h3>
+            <p class="text-slate-300 text-sm">AI-powered adaptive learning tailored to your pace</p>
+          </div>
+
+          <div class="glass rounded-2xl p-6 text-center" data-animate>
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,var(--cyan),var(--violet));">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">24/7 Support</h3>
+            <p class="text-slate-300 text-sm">Round-the-clock doubt clearing and mentor assistance</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-6">
+      <div class="max-w-4xl mx-auto">
+        <div class="glass rounded-3xl p-12 text-center relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-cyan-500/10"></div>
+          <div class="relative z-10">
+            <h2 class="text-4xl font-bold mb-4">Ready to Start Your Journey?</h2>
+            <p class="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">Join thousands of successful students who cracked their dream exams with ThinkPlus</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="login.html" class="px-8 py-4 rounded-lg font-semibold cta text-lg">Enroll Now</a>
+              
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-white/6">
+    <div class="max-w-7xl mx-auto px-6 text-center text-slate-300">
+      <div class="mb-4">© 2025 ThinkPlus. All Rights Reserved.</div>
+      <div class="text-sm">Empowering students to achieve their dreams</div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // ---- 3D BACKGROUND SCENE ----
+    let mode = 'dark';
+    let scene, camera, renderer, objects = [], lights = [];
+
+    function setupScene(theme) {
+      if(scene){ 
+        while(scene.children.length) scene.remove(scene.children[0]);
+        objects = [];
+        lights = [];
+      }
+      if(!scene){
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 7);
+        renderer = new THREE.WebGLRenderer({canvas:document.getElementById('bg3d-canvas'), alpha: true, antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+
+      let amb, dir;
+      if(theme === 'light'){
+        amb = new THREE.AmbientLight(0xf9fafb, 0.7);
+        scene.background = new THREE.Color(0xecf1fc);
+        dir = new THREE.DirectionalLight(0x5ed0f8, 0.34);
+        dir.position.set(0, 1, 2);
+      } else {
+        amb = new THREE.AmbientLight(0x7c3aed, 0.49);
+        scene.background = new THREE.Color(0x050813);
+        dir = new THREE.DirectionalLight(0x06b6d4, 0.25);
+        dir.position.set(0, 1, 1);
+      }
+      scene.add(amb); lights.push(amb);
+      scene.add(dir); lights.push(dir);
+
+      for(let i=0;i<12;i++){
+        const geo = i % 2 === 0 ? new THREE.SphereGeometry(0.65 + Math.random()*0.36, 44, 24) : new THREE.TorusGeometry(0.31 + Math.random()*0.25, 0.11, 16, 44);
+        const isLight = theme === 'light';
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: i % 2 === 0 ? (isLight? 0x6e65fa : 0x7c3aed) : (isLight? 0x53b1fd : 0x06b6d4),
+          roughness: 0.39,
+          metalness: 0.25,
+          clearcoat: 0.6,
+          transparent: true,
+          opacity: 0.17 + Math.random()*0.18,
+          emissive: i % 2 === 0 ? (isLight? 0xe0dafb : 0x7c3aed) : (isLight? 0xcfecfd : 0x06b6d4),
+          emissiveIntensity: isLight ? 0.12+Math.random()*0.18 : 0.15+Math.random()*0.12
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(Math.random()-0.5)*7, (Math.random()-0.5)*5, (Math.random()-0)
+                   mesh.position.set((Math.random()-0.5)*7, (Math.random()-0.5)*5, (Math.random()-0.5)*3.5);
+        mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+        scene.add(mesh);
+        objects.push(mesh);
+      }
+    }
+
+    function animateBG() {
+      if(objects){
+        objects.forEach((obj,i)=>{
+          obj.position.y += Math.sin(Date.now()*0.001+i)*0.004;
+          obj.rotation.y += 0.005 + i*0.001;
+          obj.rotation.x += 0.003 + i*0.001;
+        });
+      }
+      camera.position.z = 7 + Math.sin(Date.now()*0.0004)*0.5;
+      if(camera && renderer && scene) renderer.render(scene, camera);
+      requestAnimationFrame(animateBG);
+    }
+
+    window.addEventListener('resize', function(){
+      if(camera && renderer){
+        camera.aspect = window.innerWidth/window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+    });
+
+    setupScene('dark');
+    animateBG();
+
+    // Theme toggle
+    document.getElementById('theme-toggle').onclick = function() {
+      mode = (mode === 'dark') ? 'light' : 'dark';
+      document.body.classList.toggle('light-mode');
+      setupScene(mode);
+    };
+
+    // --- Particles canvas ---
+    (function initParticles(){
+      const c = document.getElementById('particle-canvas');
+      const ctx = c.getContext('2d');
+      let w = c.width = innerWidth, h = c.height = innerHeight;
+      const N = Math.floor((w*h)/70000) + 30;
+      const particles = [];
+      for(let i=0;i<N;i++){
+        particles.push({
+          x: Math.random()*w, 
+          y: Math.random()*h, 
+          r: 8 * Math.random() + 1.2, 
+          vx: (Math.random()-0.5)*0.1, 
+          vy: (Math.random()-0.5)*0.1
+        });
+      }
+      function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; }
+      addEventListener('resize', resize);
+      
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(const p of particles){
+          p.x += p.vx; 
+          p.y += p.vy;
+          if(p.x < -50) p.x = w+50; 
+          if(p.x > w+50) p.x = -50;
+          if(p.y < -50) p.y = h+50; 
+          if(p.y > h+50) p.y = -50;
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+          g.addColorStop(0, 'rgba(124,58,237,0.12)');
+          g.addColorStop(0.4, 'rgba(6,182,212,0.06)');
+          g.addColorStop(1, 'rgba(6,182,212,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); 
+          ctx.arc(p.x, p.y, p.r*8, 0, Math.PI*2); 
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // --- GSAP Animations ---
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero animations
+    gsap.from("section:first-of-type > div > *", {
+      y: 30,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: "power3.out",
+      delay: 0.2
+    });
+
+    // Course cards reveal
+    gsap.utils.toArray('[data-animate]').forEach((el, i) => {
+      gsap.from(el, {
+        scrollTrigger: { 
+          trigger: el, 
+          start: "top 85%",
+          toggleActions: "play none none none"
+        },
+        y: 40, 
+        opacity: 0, 
+        duration: 0.9, 
+        ease: "power3.out", 
+        delay: i * 0.1
+      });
+    });
+
+    // Tilt effect on course cards
+    const tiltEls = document.querySelectorAll('.tilt');
+    tiltEls.forEach(el => {
+      el.addEventListener('pointermove', (ev) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dx = (ev.clientX - cx) / rect.width;
+        const dy = (ev.clientY - cy) / rect.height;
+        gsap.to(el, {
+          rotationY: dx * 4, 
+          rotationX: -dy * 4, 
+          transformPerspective: 1000, 
+          transformOrigin: "center", 
+          duration: 0.3, 
+          ease: "power3.out"
+        });
+      });
+      
+      el.addEventListener('pointerleave', () => {
+        gsap.to(el, {
+          rotationY: 0, 
+          rotationX: 0, 
+          duration: 0.5, 
+          ease: "power2.out"
+        });
+      });
+    });
+
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const courseCards = document.querySelectorAll('.course-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        filterBtns.forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        this.classList.add('active');
+
+        const filter = this.getAttribute('data-filter');
+
+        courseCards.forEach(card => {
+          const category = card.getAttribute('data-category');
+          
+          if (filter === 'all' || category === filter) {
+            gsap.to(card, {
+              opacity: 1,
+              scale: 1,
+              display: 'block',
+              duration: 0.4,
+              ease: "power2.out"
+            });
+          } else {
+            gsap.to(card, {
+              opacity: 0,
+              scale: 0.9,
+              duration: 0.3,
+              ease: "power2.in",
+              onComplete: () => {
+                card.style.display = 'none';
+              }
+            });
+          }
+        });
+      });
+    });
+
+    // Start Learning button click handlers
+    document.querySelectorAll('.course-card button').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const courseName = this.closest('.course-card').querySelector('h3').textContent;
+        
+        // Show loading state
+        const originalText = this.textContent;
+        this.textContent = 'Loading...';
+        this.disabled = true;
+
+        // Simulate enrollment process
+        setTimeout(() => {
+          // Redirect to login or course page
+          alert(`Enrolling in ${courseName}. Redirecting to login...`);
+          window.location.href = 'login.html';
+        }, 1000);
+      });
+    });
+
+    // Parallax effect for floats
+    gsap.to('.float', {
+      yPercent: -10,
+      ease: "none",
+      scrollTrigger: { 
+        trigger: document.body, 
+        start: 0, 
+        end: "max", 
+        scrub: 0.8 
+      }
+    });
+
+    // Header scroll effect
+    let lastScroll = 0;
+    const header = document.querySelector('header');
+    
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      
+      if (currentScroll > lastScroll && currentScroll > 100) {
+        gsap.to(header, {y: -100, duration: 0.3, ease: "power2.out"});
+      } else {
+        gsap.to(header, {y: 0, duration: 0.3, ease: "power2.out"});
+      }
+      
+      lastScroll = currentScroll;
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+

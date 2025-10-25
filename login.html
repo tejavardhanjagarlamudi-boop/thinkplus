@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — ThinkPlus</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <style>
+    :root {
+      --violet: #7c3aed;
+      --cyan: #06b6d4;
+      --bg: #050813;
+      --bg-light: #ecf1fc;
+      --headline-dark: #e6eef6;
+      --headline-light: #26324b;
+      --desc-dark: #b9c6d8;
+      --desc-light: #5f6b7a;
+    }
+    html,body { height: 100%; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:0;
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%),
+        var(--bg);
+      color: var(--headline-dark);
+      -webkit-font-smoothing:antialiased;
+      overflow-x: hidden;
+      transition: background 0.55s cubic-bezier(.4,2,.2,1), color 0.32s;
+    }
+    body.light-mode {
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.085), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.13), transparent 6%),
+        var(--bg-light);
+      color: var(--headline-light);
+    }
+    .neon { 
+      color: white; 
+      font-weight: 700; 
+      letter-spacing: -0.02em; 
+      text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06); 
+    }
+    body.light-mode .neon { color: var(--headline-light); text-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+    
+    .glass { 
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
+      border: 1px solid rgba(255,255,255,0.04); 
+      backdrop-filter: blur(12px); 
+      transition: all 0.3s;
+    }
+    body.light-mode .glass { 
+      background: rgba(255,255,255,0.65); 
+      border: 1px solid rgba(70,90,120,0.12); 
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    
+    .cta {
+      background: linear-gradient(90deg,var(--violet),var(--cyan)); 
+      color: #fff; 
+      box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06); 
+      transition: all 0.3s;
+    }
+    .cta:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(6,182,212,0.18), 0 4px 12px rgba(124,58,237,0.09); }
+    
+    .float {
+      position: absolute; 
+      filter: blur(28px);
+      opacity: 0.25; 
+      pointer-events: none; 
+      mix-blend-mode: screen; 
+      transition: opacity 0.5s;
+    }
+    body.light-mode .float { opacity: 0.15;}
+    
+    #bg3d-canvas {position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: -1;}
+    
+    .input-field {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--headline-dark);
+      transition: all 0.3s;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--violet);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+    }
+    body.light-mode .input-field {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(70,90,120,0.2);
+      color: var(--headline-light);
+    }
+    body.light-mode .input-field:focus {
+      border-color: var(--violet);
+      background: rgba(255,255,255,0.95);
+    }
+    
+    .text-slate-300 { color: var(--desc-dark); transition: color 0.3s;}
+    body.light-mode .text-slate-300 { color: var(--desc-light);}
+    
+    .link-accent { color: var(--cyan); text-decoration: none; transition: color 0.2s;}
+    .link-accent:hover { color: var(--violet); }
+    
+    .checkbox-custom {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .checkbox-custom:checked {
+      background: linear-gradient(90deg,var(--violet),var(--cyan));
+      border-color: var(--violet);
+    }
+    .checkbox-custom:checked::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    body.light-mode .checkbox-custom {
+      border-color: rgba(70,90,120,0.3);
+      background: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- 3D background -->
+  <canvas id="bg3d-canvas"></canvas>
+  
+  <!-- Decorative glows -->
+  <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div>
+  <div class="float" style="width:380px;height:380px;right:-80px;top:56%;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+  
+  <!-- Particle canvas -->
+  <canvas id="particle-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+  <!-- Header -->
+  <header class="fixed w-full z-40 top-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="p-2 rounded-md glass">
+        <a href="index.html" class="neon text-xl px-3 py-1 rounded font-semibold">Think<span style="color:var(--cyan)">Plus</span></a>
+      </div>
+      <button id="theme-toggle" class="px-4 py-2 rounded-md text-sm glass hover:scale-105 transition" title="Switch theme">🌗</button>
+    </div>
+  </header>
+
+  <!-- Login Container -->
+  <main class="relative z-10 min-h-screen flex items-center justify-center px-6 py-24">
+    <div class="w-full max-w-md">
+      <!-- Login Card -->
+      <div class="glass rounded-2xl p-8 shadow-2xl" id="login-card">
+        <!-- Logo/Title -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background:linear-gradient(135deg,var(--violet),var(--cyan)); box-shadow: 0 12px 40px rgba(6,182,212,0.12);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white" opacity="0.8"/>
+              <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 class="text-3xl font-bold mb-2">Welcome back</h1>
+          <p class="text-slate-300 text-sm">Sign in to continue your learning journey</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-5">
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-sm font-medium mb-2">Email address</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              required
+              placeholder="you@example.com"
+              class="w-full px-4 py-3 rounded-lg input-field"
+            />
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label for="password" class="block text-sm font-medium mb-2">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required
+              placeholder="••••••••"
+              class="w-full px-4 py-3 rounded-lg input-field"
+            />
+          </div>
+
+          <!-- Remember & Forgot -->
+          <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" class="checkbox-custom" id="remember" />
+              <span class="text-slate-300">Remember me</span>
+            </label>
+            <a href="#" class="link-accent">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="w-full py-3 px-4 rounded-lg font-semibold cta"
+          >
+            Sign in
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-white/10"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-4 glass rounded-full text-slate-300">Or continue with</span>
+          </div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="grid grid-cols-2 gap-3">
+          <button class="flex items-center justify-center gap-2 py-3 px-4 rounded-lg glass hover:scale-105 transition">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            <span>Google</span>
+          </button>
+          <button class="flex items-center justify-center gap-2 py-3 px-4 rounded-lg glass hover:scale-105 transition">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529
+                              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.137 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+            <span>GitHub</span>
+          </button>
+        </div>
+
+        <!-- Sign up link -->
+        <div class="mt-6 text-center text-sm text-slate-300">
+          Don't have an account? 
+          <a href="signup.html" class="link-accent font-semibold">Sign up</a>
+        </div>
+      </div>
+
+      <!-- Additional info -->
+      <div class="mt-6 text-center text-xs text-slate-300">
+        By signing in, you agree to our 
+        <a href="#" class="link-accent">Terms</a> and 
+        <a href="#" class="link-accent">Privacy Policy</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    // ---- 3D BACKGROUND SCENE ----
+    let mode = 'dark';
+    let scene, camera, renderer, objects = [], lights = [];
+
+    function setupScene(theme) {
+      if(scene){ 
+        while(scene.children.length) scene.remove(scene.children[0]);
+        objects = [];
+        lights = [];
+      }
+      if(!scene){
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 7);
+        renderer = new THREE.WebGLRenderer({canvas:document.getElementById('bg3d-canvas'), alpha: true, antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+
+      let amb, dir;
+      if(theme === 'light'){
+        amb = new THREE.AmbientLight(0xf9fafb, 0.7);
+        scene.background = new THREE.Color(0xecf1fc);
+        dir = new THREE.DirectionalLight(0x5ed0f8, 0.34);
+        dir.position.set(0, 1, 2);
+      } else {
+        amb = new THREE.AmbientLight(0x7c3aed, 0.49);
+        scene.background = new THREE.Color(0x050813);
+        dir = new THREE.DirectionalLight(0x06b6d4, 0.25);
+        dir.position.set(0, 1, 1);
+      }
+      scene.add(amb); lights.push(amb);
+      scene.add(dir); lights.push(dir);
+
+      for(let i=0;i<12;i++){
+        const geo = i % 2 === 0 ? new THREE.SphereGeometry(0.65 + Math.random()*0.36, 44, 24) : new THREE.TorusGeometry(0.31 + Math.random()*0.25, 0.11, 16, 44);
+        const isLight = theme === 'light';
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: i % 2 === 0 ? (isLight? 0x6e65fa : 0x7c3aed) : (isLight? 0x53b1fd : 0x06b6d4),
+          roughness: 0.39,
+          metalness: 0.25,
+          clearcoat: 0.6,
+          transparent: true,
+          opacity: 0.17 + Math.random()*0.18,
+          emissive: i % 2 === 0 ? (isLight? 0xe0dafb : 0x7c3aed) : (isLight? 0xcfecfd : 0x06b6d4),
+          emissiveIntensity: isLight ? 0.12+Math.random()*0.18 : 0.15+Math.random()*0.12
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set((Math.random()-0.5)*7, (Math.random()-0.5)*5, (Math.random()-0.5)*3.5);
+        mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+        scene.add(mesh);
+        objects.push(mesh);
+      }
+    }
+
+    function animateBG() {
+      if(objects){
+        objects.forEach((obj,i)=>{
+          obj.position.y += Math.sin(Date.now()*0.001+i)*0.004;
+          obj.rotation.y += 0.005 + i*0.001;
+          obj.rotation.x += 0.003 + i*0.001;
+        });
+      }
+      camera.position.z = 7 + Math.sin(Date.now()*0.0004)*0.5;
+      if(camera && renderer && scene) renderer.render(scene, camera);
+      requestAnimationFrame(animateBG);
+    }
+
+    window.addEventListener('resize', function(){
+      if(camera && renderer){
+        camera.aspect = window.innerWidth/window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+      }
+    });
+
+    setupScene('dark');
+    animateBG();
+
+    // Theme toggle
+    document.getElementById('theme-toggle').onclick = function() {
+      mode = (mode === 'dark') ? 'light' : 'dark';
+      document.body.classList.toggle('light-mode');
+      setupScene(mode);
+    };
+
+    // --- Particles canvas ---
+    (function initParticles(){
+      const c = document.getElementById('particle-canvas');
+      const ctx = c.getContext('2d');
+      let w = c.width = innerWidth, h = c.height = innerHeight;
+      const N = Math.floor((w*h)/70000) + 30;
+      const particles = [];
+      for(let i=0;i<N;i++){
+        particles.push({
+          x: Math.random()*w, 
+          y: Math.random()*h, 
+          r: 8 * Math.random() + 1.2, 
+          vx: (Math.random()-0.5)*0.1, 
+          vy: (Math.random()-0.5)*0.1
+        });
+      }
+      function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; }
+      addEventListener('resize', resize);
+      
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(const p of particles){
+          p.x += p.vx; 
+          p.y += p.vy;
+          if(p.x < -50) p.x = w+50; 
+          if(p.x > w+50) p.x = -50;
+          if(p.y < -50) p.y = h+50; 
+          if(p.y > h+50) p.y = -50;
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+          g.addColorStop(0, 'rgba(124,58,237,0.12)');
+          g.addColorStop(0.4, 'rgba(6,182,212,0.06)');
+          g.addColorStop(1, 'rgba(6,182,212,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); 
+          ctx.arc(p.x, p.y, p.r*8, 0, Math.PI*2); 
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // --- GSAP Animations ---
+    gsap.from("#login-card", {
+      y: 40, 
+      opacity: 0, 
+      duration: 1, 
+      ease: "power3.out", 
+      delay: 0.2
+    });
+
+    gsap.from("#login-card > *", {
+      y: 20, 
+      opacity: 0, 
+      duration: 0.8, 
+      stagger: 0.1, 
+      ease: "power3.out", 
+      delay: 0.5
+    });
+
+    // --- Form Handling ---
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('remember').checked;
+
+      // Show loading state
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Signing in...';
+      submitBtn.disabled = true;
+
+      // Simulate API call
+      setTimeout(() => {
+        // Replace this with your actual authentication logic
+        console.log('Login attempt:', { email, password, remember });
+        
+        // Success animation
+        gsap.to("#login-card", {
+          scale: 0.95,
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.in",
+          onComplete: () => {
+            // Redirect to dashboard or home page
+            window.location.href = 'index.html';
+          }
+        });
+      }, 1500);
+    });
+
+    // Input focus animations
+    document.querySelectorAll('.input-field').forEach(input => {
+      input.addEventListener('focus', function() {
+        gsap.to(this, {
+          scale: 1.02,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      });
+      
+      input.addEventListener('blur', function() {
+        gsap.to(this, {
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ThinkPlus — IPMAT Program</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --violet: #7c3aed;
+      --cyan: #06b6d4;
+      --bg: #050813;
+    }
+    html,body { height: 100%; }
+    body{
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:0;
+      background:
+        radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+        radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%),
+        var(--bg);
+      color: #e6eef6;
+      overflow-x: hidden;
+    }
+
+    .neon {
+      color: white;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06);
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid rgba(124,58,237,0.12);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 40px rgba(6,182,212,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .glass:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(124,58,237,0.3), 0 8px 20px rgba(6,182,212,0.2);
+    }
+    
+    .hero-gradient {
+      background: linear-gradient(90deg,#ffffff,#dfe7ff,#06b6d4,#7c3aed);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      color: transparent;    
+      animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    .cta {
+      background: linear-gradient(90deg,var(--violet),var(--cyan));
+      color: #05060a;
+      box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06);
+    }
+
+    header, footer {
+      z-index: 50;
+    }
+
+    .tilt {
+      transform-style: preserve-3d;
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    .accent {
+      height: 4px;
+      width: 64px;
+      border-radius: 999px;
+      background: linear-gradient(90deg,var(--violet),var(--cyan));
+      box-shadow: 0 8px 40px rgba(6,182,212,0.06);
+    }
+
+    .float {
+      position: absolute;
+      filter: blur(28px);
+      opacity: 0.25;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      animation: float-move 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes float-move {
+      0% { transform: translate(0,0) rotate(0deg) scale(1); }
+      50% { transform: translate(20px,-12px) rotate(45deg) scale(1.1);}
+      100% { transform: translate(-12px,16px) rotate(-45deg) scale(0.9);}
+    }
+
+    .neon-img {
+  transition: box-shadow 0.4s, transform 0.25s;
+  box-shadow: 0 12px 40px rgba(124,58,237,0.16), 0 4px 24px rgba(6,182,212,0.15);
+  mix-blend-mode: lighten;
+  filter: drop-shadow(0 0 16px #7c3aed88) blur(0.5px);
+}
+
+.neon-img:hover {
+  transform: scale(1.025) rotate(-1.5deg);
+  box-shadow: 0 36px 100px rgba(124,58,237,0.35), 0 10px 38px rgba(6,182,212,0.21);
+  filter: drop-shadow(0 0 32px #06b6d488) brightness(1.08);
+}
+
+  </style>
+</head>
+<body>
+  <!-- floating shapes -->
+  <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div>
+  <div class="float" style="width:380px;height:380px;right:-80px;top:56%;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+
+  <!-- header -->
+  <header class="fixed w-full top-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="p-2 rounded-md glass">
+          <div class="neon text-xl px-3 py-1 rounded font-semibold">Think<span style="color:var(--cyan)">Plus</span></div>
+        </div>
+        <nav class="hidden md:flex gap-6 text-slate-300">
+          <a href="#exam" class="hover:text-white transition">community</a>
+          <a href="#profile" class="hover:text-white transition">contact
+          </a>
+          <a href="thinkplus1.html" class="hover:text-white transition">Home </a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        
+        <a class="px-4 py-2 rounded-md text-sm font-semibold cta" href="login.html">Sign in</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10">
+    <!-- HERO -->
+    <section id="hero" class="min-h-screen flex items-center">
+      <div class="max-w-7xl mx-auto px-6 py-28 grid grid-cols-12 gap-8 items-center relative z-10">
+        <div class="col-span-12 lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full" style="background:linear-gradient(90deg,var(--violet),var(--cyan));"></span>
+            <span class="text-sm text-slate-300 uppercase tracking-wider">IPMAT Program</span>
+          </div>
+
+          <h1 class="hero-title text-5xl lg:text-6xl font-extrabold leading-tight hero-gradient tilt">
+            ThinkPlus — Personalized CLAT Preparation
+          </h1>
+
+          <p class="max-w-2xl text-slate-300/90 text-lg">
+            Thinkplus Education offers a unique and personalized course curriculum for IPMAT, shaping well-rounded students with academic rigor and a thirst for knowledge. 
+
+ .
+          </p>
+          <div class="flex justify-center mt-8">
+            <img 
+              src="learning-education-ideas-insight-intelligence-study-concept.jpg"
+              alt="Learning Concept"
+              class="w-2/3 max-w-2xl rounded-2xl shadow-xl border-2 border-[rgba(124,58,237,0.22)] glass neon-img"
+              style="background:linear-gradient(120deg, rgba(124,58,237,0.10) 40%, rgba(6,182,212,0.10) 100%);filter:blur(0.3px) brightness(1.05);box-shadow:0 24px 60px rgba(124,58,237,0.22),0 8px 32px rgba(6,182,212,0.12);"
+            />
+          </div>
+          
+          <div class="mt-6 flex items-center gap-4">
+            <a class="inline-flex items-center gap-3 px-5 py-3 rounded-md text-black font-semibold cta transition" href="#">Get started — free</a>
+          </div>
+
+          <div class="mt-8">
+            <div class="accent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="exam" class="py-20 max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-6"></h2>
+      <p class="text-slate-300 mb-4">
+        Thinkplus’ CLAT program aims to assist students in preparing for the CLAT exam and pursuing a career in Law immediately after completing their 12th grade. The program offers a personalized curriculum that enables students to develop a comprehensive understanding of the necessary concepts to excel in the CLAT exam and gain admission to their desired university. Throughout the CLAT prep journey, our team of expert faculty, who possess over 10 years of experience, will provide guidance and support.  
+
+To commence the journey, students will undergo an assessment test that evaluates their abilities, strengths, and weaknesses. Following this, there will be a series of concept and application-building classes, as well as extensive mock tests and sectional tests designed to replicate the actual CLAT exam experience. These assessments will enable students to gauge their progress and identify areas for improvement.  
+
+Our CLAT course emphasizes the significance of self-evaluation and self-reflection during mock analysis. Furthermore, we offer think-plus enriched extras that aim to assist students in overcoming their weaknesses and enhancing their performance. Additionally, personalized mentoring sessions are available, providing students with the opportunity to discuss their challenges and receive valuable tips, strategies, and insights for the CLAT exam.  
+
+Moreover, our CLAT course extends beyond exam preparation. We offer personality and profile-building sessions, a book club, and interactive quizzes to help students reach their maximum potential and achieve their goals. These additional resources aim to develop well-rounded individuals who are not only prepared for the exam but also equipped with the necessary skills for future success in the field of Law. 
+
+ 
+      </p>
+      <p class="text-slate-300">
+        Personalized mentoring sessions from IIM grads guide students throughout their preparation journey.
+      </p>
+    </section>
+
+
+    <!-- Exam Preparation -->
+    <section id="exam" class="py-20 max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-6">Exam Preparation</h2>
+      <p class="text-slate-300 mb-4">
+        Students will build a strong foundation and move to comprehensive exam preparation with 600+ hours of classes, 300+ mock tests, and sectional tests.
+      </p>
+      <p class="text-slate-300">
+        Personalized mentoring sessions from IIM grads guide students throughout their preparation journey.
+      </p>
+    </section>
+
+    <!-- Profile Building -->
+    <section id="profile" class="py-20 max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-6">Profile Building</h2>
+      <p class="text-slate-300 mb-4">
+        Focuses on developing students' personalities through classroom discussions, quizzes, presentations, and a book club.
+      </p>
+      <p class="text-slate-300">
+        Students develop crucial soft skills such as communication, positive body language, creative thinking, and innovation — essential for interviews and future careers.
+      </p>
+    </section>
+
+    <!-- Pricing / Stats -->
+    <section id="pricing" class="py-20 max-w-7xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-6">Packages</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="glass p-8 rounded-2xl tilt">
+          <h3 class="text-xl font-semibold mb-2">Starter</h3>
+          <p class="text-slate-300 mb-4">Basics + Mock tests</p>
+          <div class="text-3xl font-bold text-white">₹599 / mo</div>
+        </div>
+        <div class="glass p-8 rounded-2xl tilt border-2 border-[rgba(124,58,237,0.12)]">
+          <h3 class="text-xl font-semibold mb-2">Pro</h3>
+          <p class="text-slate-300 mb-4">Live classes + Mentors</p>
+          <div class="text-3xl font-bold text-white">₹1299 / mo</div>
+        </div>
+        <div class="glass p-8 rounded-2xl tilt">
+          <h3 class="text-xl font-semibold mb-2">Elite</h3>
+          <p class="text-slate-300 mb-4">1:1 Mentorship + Interview prep</p>
+          <div class="text-3xl font-bold text-white">₹2999 / mo</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 mt-16 border-t border-white/6 text-center text-slate-300">
+      <div>© 2025 ThinkPlus. All Rights Reserved.</div>
+      <div class="text-sm">Graphite-style theme with dynamic neon effects and animations.</div>
+    </footer>
+  </main>
+
+  <!-- JS: GSAP tilt + scroll -->
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero animation
+    gsap.from(".hero-title", {y: 24, opacity:0, duration:0.9, ease:"power3.out", delay:0.08});
+    gsap.from("#hero p", {y: 18, opacity:0, duration:0.9, ease:"power3.out", delay:0.18});
+    gsap.from("#hero .accent, #hero .cta, #hero .glass", {opacity:0, y: 10, duration:0.8, stagger:0.06, delay:0.28});
+
+    // tilt effect
+    const tiltEls = document.querySelectorAll('.tilt');
+    tiltEls.forEach(el => {
+      el.addEventListener('pointermove', (ev) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dx = (ev.clientX - cx) / rect.width;
+        const dy = (ev.clientY - cy) / rect.height;
+        gsap.to(el, {rotationY: dx * 6, rotationX: -dy * 6, transformPerspective:900, transformOrigin:"center", duration:0.35, ease:"power3.out"});
+      });
+      el.addEventListener('pointerleave', () => {
+        gsap.to(el, {rotationY:0, rotationX:0, duration:0.6, ease:"power2.out"});
+      });
+    });
+
+    // header hide / show on scroll
+    let last = 0;
+    const header = document.querySelector('header');
+    addEventListener('scroll', () => {
+      const cur = pageYOffset;
+      if (cur > last && cur > 80) gsap.to(header, {y:-86, duration:0.35, ease:"power2.out"});
+      else gsap.to(header, {y:0, duration:0.35, ease:"power2.out"});
+      last = cur;
+    });
+  </script>
+</body>
+</html>

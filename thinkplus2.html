@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en"> 
+  <head> 
+    <meta charset="utf-8" /> 
+    <meta name="viewport" content="width=device-width,initial-scale=1" /> 
+    <title>ThinkPlus — Graphite-style UI (Inspired)</title>
+     <!-- Tailwind CDN --> 
+      <script src="https://cdn.tailwindcss.com"></script> 
+      <!-- GSAP + ScrollTrigger --> 
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script> 
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script> 
+       <!-- Inter font --> 
+       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+         <!-- Three.js --> 
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script> 
+          <style> 
+            :root { 
+              --violet: #7c3aed; 
+              --cyan: #06b6d4; 
+              --bg: #050813; 
+              --bg-light: #ecf1fc; 
+              --card: rgba(255,255,255,0.03); 
+              --muted: #b9c6d8; 
+              --headline-dark: #e6eef6; 
+              --headline-light: #26324b; 
+              --desc-dark: #b9c6d8; 
+              --desc-light: #5f6b7a; 
+            } 
+            html,body { height: 100%; } 
+            body { 
+              font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; 
+              margin:0; 
+              background: radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.06), transparent 8%), radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.035), transparent 6%), var(--bg); 
+              color: var(--headline-dark); 
+              -webkit-font-smoothing:antialiased; 
+              -moz-osx-font-smoothing:grayscale; 
+              overflow-x: hidden; 
+              transition: background 0.55s cubic-bezier(.4,2,.2,1), color 0.32s; 
+            } 
+            body.light-mode { 
+              background: radial-gradient(700px 300px at 10% 10%, rgba(124,58,237,0.085), transparent 8%), radial-gradient(600px 240px at 90% 90%, rgba(6,182,212,0.13), transparent 6%), var(--bg-light); 
+              color: var(--headline-light); 
+            } 
+            .neon { 
+              color: white; 
+              font-weight: 700; 
+              letter-spacing: -0.02em; 
+              text-shadow: 0 4px 28px rgba(124,58,237,0.18), 0 0 8px rgba(6,182,212,0.06); 
+            } 
+            body.light-mode .neon { 
+              color: var(--headline-light); 
+              text-shadow: 0 2px 12px rgba(124,58,237,0.08); 
+            } 
+            .glass { 
+              background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
+              border: 1px solid rgba(255,255,255,0.04); 
+              backdrop-filter: blur(6px); 
+              transition: all 0.3s;
+            } 
+            body.light-mode .glass { 
+              background: rgba(255,255,255,0.45); 
+              border: 1px solid rgba(70,90,120,0.12); 
+              box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+            } 
+            .accent {
+              height: 4px; 
+              width: 64px; 
+              border-radius: 999px; 
+              background: linear-gradient(90deg,var(--violet),var(--cyan)); 
+              box-shadow: 0 8px 40px rgba(6,182,212,0.06);
+            } 
+            .float {
+              position: absolute; 
+              filter: blur(28px);
+              opacity: 0.25; 
+              pointer-events: none; 
+              mix-blend-mode: screen; 
+              transition: opacity 0.5s;
+            } 
+            body.light-mode .float { 
+              opacity: 0.15;
+            } 
+            .hero-gradient {
+              background: linear-gradient(90deg,#ffffff,#dfe7ff 60%); 
+              -webkit-background-clip: text; 
+              background-clip: text; 
+              color: transparent;
+            } 
+            body.light-mode .hero-gradient {
+              background: linear-gradient(90deg,#1a2333,#3d4d6b 60%); 
+              -webkit-background-clip: text; 
+              background-clip: text;
+            } 
+            .cta {
+              background: linear-gradient(90deg,var(--violet),var(--cyan)); 
+              color: #05060a; 
+              box-shadow: 0 12px 40px rgba(6,182,212,0.12), 0 3px 10px rgba(124,58,237,0.06); 
+              transition: all 0.3s;
+            } 
+            body.light-mode .cta { 
+              color: #fff; 
+              box-shadow: 0 8px 32px rgba(6,182,212,0.18), 0 2px 8px rgba(124,58,237,0.12);
+            } 
+            .play {
+              width:72px;
+              height:72px;
+              border-radius:999px;
+              display:grid;
+              place-items:center;
+              background:linear-gradient(135deg,var(--violet),var(--cyan)); 
+              box-shadow: 0 12px 40px rgba(6,182,212,0.12), inset 0 -6px 18px rgba(0,0,0,0.2)
+            } 
+            body.light-mode .play { 
+              box-shadow: 0 8px 32px rgba(6,182,212,0.18), inset 0 -4px 12px rgba(0,0,0,0.15);
+            } 
+            .tilt {
+              transform-style: preserve-3d; 
+              will-change: transform; 
+              backface-visibility: hidden;
+            } 
+            body .text-slate-300 { 
+              color: var(--desc-dark); 
+              transition: color 0.3s;
+            } 
+            body.light-mode .text-slate-300 { 
+              color: var(--desc-light);
+            } 
+            body .text-white { 
+              color: var(--headline-dark); 
+              transition: color 0.3s;
+            } 
+            body.light-mode .text-white { 
+              color: var(--headline-light);
+            } 
+            body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4 { 
+              color: var(--headline-light);
+            } 
+            @media (max-width: 900px) {
+              .hero-title { 
+                font-size: 2rem; 
+                line-height:1.05; 
+              }
+            } 
+            #bg3d-canvas {
+              position: fixed; 
+              inset: 0; 
+              width: 100vw; 
+              height: 100vh; 
+              pointer-events: none; 
+              z-index: -1;
+            } 
+            .footer-bg { 
+              background: #0a1124; 
+              border-top: 1px solid rgba(255,255,255,0.1); 
+              transition: all 0.3s;
+            } 
+            body.light-mode .footer-bg { 
+              background: #dce4f0; 
+              border-top: 1px solid rgba(0,0,0,0.08);
+            }
+
+            /* Package Pick Badge */
+            .package-pick {
+              position: absolute;
+              top: -12px;
+              right: 20px;
+              padding: 6px 16px;
+              background: linear-gradient(135deg, var(--violet), var(--cyan));
+              color: white;
+              font-size: 12px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              border-radius: 999px;
+              box-shadow: 0 8px 24px rgba(124,58,237,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+              z-index: 10;
+              animation: pickPulse 2s infinite;
+            }
+
+            @keyframes pickPulse {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 8px 24px rgba(124,58,237,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+              }
+              50% { 
+                transform: scale(1.05);
+                box-shadow: 0 12px 32px rgba(124,58,237,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+              }
+            }
+
+            body.light-mode .package-pick {
+              box-shadow: 0 8px 24px rgba(124,58,237,0.25), 0 0 0 1px rgba(255,255,255,0.3);
+            }
+
+            /* Enhanced first package styling */
+            .first-package {
+              position: relative;
+              transform: scale(1.02);
+              border: 2px solid rgba(124,58,237,0.2);
+            }
+
+            body.light-mode .first-package {
+              border-color: rgba(124,58,237,0.3);
+            }
+          </style> 
+        </head> 
+        <body> 
+          <!-- 3D background canvas --> 
+          <canvas id="bg3d-canvas"></canvas> 
+          <!-- decorative glows --> 
+          <div class="float" style="width:520px;height:520px;left:-120px;top:8%;background:radial-gradient(circle at 30% 30%, rgba(124,58,237,0.95), rgba(124,58,237,0.18), transparent);"></div> 
+          <div class="float" style="width:380px;height:380px;right:-80px;top:56%;background:radial-gradient(circle at 70% 70%, rgba(6,182,212,0.95), rgba(6,182,212,0.14), transparent);"></div>
+          <!-- glow particle canvas -->
+          <canvas id="particle-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:0;"></canvas>
+
+          <!-- header --> 
+          <header class="fixed w-full z-40 top-4 px-6"> 
+            <div class="max-w-7xl mx-auto flex items-center justify-between"> 
+              <div class="flex items-center gap-4"> 
+                <div class="p-2 rounded-md glass">
+                  <div class="text-pink-900 text-2xl px-1 py-1 rounded font-semibold">think<span style="color:var(--cyan)">+</span></div> 
+                </div> 
+                <nav class="hidden md:flex gap-6 text-slate-300"> 
+                  <a href="getstarted.html" class="hover:text-white transition">Courses</a> 
+                  
+                  <a href="insighgt.html" class="hover:text-white transition">Insights</a> 
+                  <a href="contact.html" class="hover:text-white transition">contact</a> 
+                  <a href="#pricing" class="hover:text-white transition">community</a> 
+                </nav> 
+              </div> 
+              <div class="flex items-center gap-3"> 
+                <button id="theme-toggle" class="px-4 py-2 rounded-md text-sm glass hover:scale-105 transition" title="Switch dark/light mode">🌗 Theme</button>
+                <a class="px-4 py-2 rounded-md text-sm font-semibold cta" href="login.html">Sign in</a> 
+              </div> 
+            </div> 
+          </header> 
+
+          <!-- main --> 
+          <main class="relative z-10"> 
+            <!-- HERO --> 
+            <section id="hero" class="min-h-screen flex items-center"> 
+              <div class="max-w-7xl mx-auto px-6 py-28 grid grid-cols-12 gap-8 items-center relative z-10"> 
+                <!--left--> 
+                <div class="col-span-12 lg:col-span-7"> 
+                  <div class="space-y-6"> 
+                    <div class="inline-flex items-center gap-3"> 
+                      <span class="w-3 h-3 rounded-full" style="background:linear-gradient(90deg,var(--violet),var(--cyan)); box-shadow:0 12px 36px rgba(6,182,212,0.06)"></span> 
+                      <span class="text-sm text-slate-300 uppercase tracking-wider">Premium coaching</span> 
+                    </div>
+                    
+                    <h1 class="hero-title text-5xl lg:text-6xl font-extrabold leading-tight hero-gradient tilt" style="transform-style:preserve-3d;">
+                      ThinkPlus — Master competitive exams<br/>with premium coaching.
+                    </h1>
+
+                    <p class="max-w-2xl text-slate-300 text-lg">
+                      Join expert-led courses for CAT, IPMAT, CLAT and more. AI-backed progress tracking and mentorship to help you reach the top.
+                    </p>
+
+                    <div class="mt-6 flex items-center gap-4">
+                      <a class="px-4 py-2 rounded-md text-sm font-semibold cta" href="login.html">Get started</a>
+                    </div>
+
+                    <div class="mt-8"><div class="accent"></div></div>
+                  </div>
+                </div>
+
+                <!-- right card -->
+                <div class="col-span-12 lg:col-span-5">
+                  <div class="glass p-6 rounded-2xl shadow-2xl relative overflow-hidden tilt" id="media-card">
+                    <div class="flex items-center justify-between mb-3 text-xs text-slate-300">
+                      <div>Demo</div>
+                      <div>Free 14 days</div>
+                    </div>
+                       
+                    
+                    <div class="rounded-xl overflow-hidden bg-[#020617] border border-white/5">
+                      <div class="relative">
+                        <img src="image copy 3.png" alt="poster" class="w-full h-64 object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                          <div class="play" id="playBtn">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M5 3L19 12L5 21V3Z" fill="white"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="p-4">
+                        <h4 class="text-white font-semibold">Interactive class snapshots</h4>
+                        <p class="text-slate-300 text-sm mt-2">See bite-sized lessons, mock tests, and progress reports in one dashboard.</p>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-3 gap-3 text-center text-xs text-slate-300">
+                      <div class="glass py-2 rounded">Live classes</div>
+                      <div class="glass py-2 rounded">Doubt sessions</div>
+                      <div class="glass py-2 rounded">Mentorship</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- FEATURES -->
+            <section id="features" class="py-20">
+              <div class="max-w-7xl mx-auto px-6">
+                <h3 class="text-sm text-slate-300 uppercase mb-4 tracking-wider">Features</h3>
+                <h2 class="text-3xl font-bold mb-8">Everything you need to ace exams</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <article class="glass p-6 rounded-2xl shadow-lg tilt feature-card" data-animate>
+                    <div class="flex items-start gap-4">
+                      <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:linear-gradient(90deg,var(--violet),var(--cyan));">
+                        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="black" d="M12 2L12 22"/></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-semibold text-white">Personalized curriculum</h4>
+                        <p class="text-slate-300 text-sm mt-1">Customized study plans and topic-level tracking.</p>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="glass p-6 rounded-2xl shadow-lg tilt feature-card" data-animate>
+                    <div class="flex items-start gap-4">
+                      <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:linear-gradient(90deg,var(--cyan),var(--violet));">
+                        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="black" d="M6 6L18 18"/></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-semibold text-white">Mock tests & analytics</h4>
+                        <p class="text-slate-300 text-sm mt-1">Exam-like tests and AI feedback on weak areas.</p>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="glass p-6 rounded-2xl shadow-lg tilt feature-card" data-animate>
+                    <div class="flex items-start gap-4">
+                      <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background:linear-gradient(90deg,var(--violet),var(--cyan));">
+                        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="black" d="M3 12L21 12"/></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-semibold text-white">Mentor support</h4>
+                        <p class="text-slate-300 text-sm mt-1">One-to-one guidance from top scorers.</p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </section>
+
+            <!-- PRICING A -->
+            <section id="pricing" class="py-20 bg-gradient-to-b from-transparent to-[rgba(255,255,255,0.01)]">
+              <div class="max-w-7xl mx-auto px-6 text-center">
+                <h2 class="text-3xl font-bold mb-6">score with ThinkPlus</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                  <!-- Starter Package with Pick Badge -->
+                  <div class="glass p-8 rounded-2xl tilt first-package">
+                    <div class="package-pick">  </div>
+                    <img src="image.png" class="mx-auto size-24">
+                    <h3 class="text-xl font-semibold mb-2"></h3>
+                    <p class="text-slate-300 mb-4"></p>
+                    <div class="text-3xl font-bold text-white">400+</div>
+                    <div class="mt-4 text-sm text-slate-300 text-center">
+                      ✓ OUR HAPPY STUDENTS<br/>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="glass p-8 rounded-2xl tilt border-2 border-[rgba(124,58,237,0.12)]">
+                    <img src="image copy 2.png" class="mx-auto size-24">
+                    <h3 class="text-xl font-semibold mb-2"></h3>
+                    <p class="text-slate-300 mb-4"></p>
+                    <div class="text-3xl font-bold text-white">10 + Years</div>
+                    <div class="mt-4 text-sm text-slate-300 text-center">
+                      ✓ Experienced Faculty<br/>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="glass p-8 rounded-2xl tilt">
+                    <img src="image copy.png" class="mx-auto size-24">
+                    <h3 class="text-xl font-semibold mb-2"></h3>
+                    <p class="text-slate-300 mb-4"></p>
+                    <div class="text-3xl font-bold text-white">600 Hrs</div>
+                    <div class="mt-4 text-sm text-slate-300 text-center">
+                    
+                      
+                      ✓ Dedicated Lectures<br/>
+                    
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- WHY + CTA -->
+            <section id="why" class="py-20">
+              <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                <div>
+                  <h3 class="text-3xl font-bold mb-4">Built for ambitious students</h3>
+                  <p class="text-slate-300">Structured content, live doubt sessions, and practice tests carefully designed to maximize score improvement.</p>
+                  <div class="mt-6 flex gap-4">
+                    <a  href="freetrail.html"  class="px-5 py-3 rounded-md inline-block cta">Start free trial</a>
+                    <a  href="contact.html" class="px-5 py-3 rounded-md glass">Talk to mentor</a>
+                  </div>
+                </div>
+
+                <div class="glass p-6 rounded-2xl shadow-lg">
+                  <h4 class="text-white font-semibold">Top outcomes</h4>
+                  <div class="mt-4 grid grid-cols-2 gap-4 text-slate-300 text-sm">
+                    <div class="glass p-3 rounded"><a href="iQ.html">IQ+</a></div>
+                    <div class="glass p-3 rounded"><a href="clat.html">CLAT</a></div>
+                    <div class="glass p-3 rounded"><a href="ipmat.html">IPMAT selections</a></div>
+                    <div class="glass p-3 rounded"><a href="carrer.html">CAREER COUNSELING</a></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- PRICING B (Packages) -->
+            <section class="py-20 bg-gradient-to-b from-transparent to-[rgba(255,255,255,0.01)]">
+              <div class="max-w-7xl mx-auto px-6 text-center">
+                <h2 class="text-3xl font-bold mb-6">Packages</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                  <div class="glass p-8 rounded-2xl tilt">
+                    <h3 class="text-xl font-semibold mb-2">Starter</h3>
+                    <p class="text-slate-300 mb-4">Basics + Mock tests</p>
+                    <div class="text-3xl font-bold text-white">₹599 / mo</div>
+                  </div>
+                  <div class="glass p-8 rounded-2xl tilt border-2 border-[rgba(124,58,237,0.12)]">
+                    <h3 class="text-xl font-semibold mb-2">Pro</h3>
+                    <p class="text-slate-300 mb-4">Live classes + Mentors</p>
+                    <div class="text-3xl font-bold text-white">₹1299 / mo</div>
+                  </div>
+                  <div class="glass p-8 rounded-2xl tilt">
+                    <h3 class="text-xl font-semibold mb-2">Elite</h3>
+                    <p class="text-slate-300 mb-4">1:1 Mentorship + Interview prep</p>
+                    <div class="text-3xl font-bold text-white">₹2999 / mo</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- FOOTER SECTION -->
+            <section class="py-16 footer-bg mt-24">
+              <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-left text-slate-200">
+                <!-- About Us -->
+                <div>
+                  <h3 class="text-xl font-semibold mb-2 border-b-2 border-[var(--violet)] pb-1 w-fit">About Us</h3>
+                  <p class="text-slate-300 mb-8">
+                    Thinkplus Education, an initiative by IIM grads started in the year 2022 to help students prepare for alternate career opportunities. It is focused on building a platform for students to learn and build personalities and profiles.
+                  </p>
+                  <div class="flex gap-4 mt-4">
+                    <a href="https://www.facebook.com/thinkplused" target="_blank" rel="noopener" aria-label="Facebook" class="hover:text-[var(--violet)] transition">
+                      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3h-3a5 5 0 0 0-5 5v3H7v4h4v8h4v-8h3l1-4h-4V8a1 1 0 0 1 1-1h3V3z"></path></svg>
+                    </a>
+                    <a href="https://instagram.com/thinkpluseducation" target="_blank" rel="noopener" aria-label="Instagram" class="hover:text-[var(--violet)] transition">
+                      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm10 2c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3h10zm-5 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm6 1a1 1 0 1 0-.002 2.002A1 1 0 0 0 18 8z"></path></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/company/thinkplused" target="_blank" rel="noopener" aria-label="LinkedIn" class="hover:text-[var(--violet)] transition">
+                      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452H17.21v-5.569c0-1.328-.026-3.037-1.851-3.037-1.852 0-2.134 1.445-2.134 2.94v5.666h-3.236V9.497h3.107v1.499h.044c.433-.818 1.494-1.68 3.073-1.68 3.289 0 3.893 2.166 3.893 4.984v6.152zM5.337 8.433a1.875 1.875 0 1 1 0-3.749 1.875 1.875 0 0 1 0 3.749zM6.864 20.452H3.812V9.497h3.052v10.955z"></path></svg>
+                    </a>
+                    <a href="https://youtube.com/@thinkpluseducation" target="_blank" rel="noopener" aria-label="YouTube" class="hover:text-[var(--violet)] transition">
+                      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path
+                      <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M23.5 6.2s-.2-1.7-.8-2.4c-.7-.8-1.5-.8-1.9-.9C18.1 2.7 12 2.7 12 2.7h-.1s-6.1 0-8.7.2c-.5.1-1.2.1-1.9.9C.7 4.5.5 6.2.5 6.2S.3 8 .3 9.7v1.3c0 1.7.2 3.5.2 3.5s.2 1.7.8 2.4c.7.8 1.6.8 2 .9C5.9 21.3 12 21.3 12 21.3s6.1 0 8.7-.2c.5-.1 1.2-.1 1.9-.9.7-.7.8-2.4.8-2.4s.2-1.7.2-3.5v-1.3c0-1.7-.2-3.5-.2-3.5zm-13 8.8V9.1l6.5 3.9-6.5 3.8z"></path></svg>
+                    </a>
+                  </div>
+                </div>
+                <!-- Services -->
+                <div>
+                  <h3 class="text-xl font-semibold mb-2 border-b-2 border-[var(--violet)] pb-1 w-fit">Services</h3>
+                  <ul class="text-slate-300 space-y-1 mt-3">
+                    <li>CAT</li>
+                    <li>IPMAT</li>
+                    <li>CLAT</li>
+                    <li>IQ+</li>
+                    <li>Career Counselling</li>
+                  </ul>
+                </div>
+                <!-- Address -->
+                <div>
+                  <h3 class="text-xl font-semibold mb-2 border-b-2 border-[var(--violet)] pb-1 w-fit">Address</h3>
+                  <div class="mb-3 text-slate-300">
+                    <span class="font-semibold">Address:</span> Thinkplus Education, 45-56-03/5/4, near Axis Bank, Narasimh nagar, Akkayyapalem, Vishakapatnam Andhra Pradesh 530024
+                  </div>
+                  <div class="mb-2 text-slate-300"><span class="font-semibold">Call Now:</span> <a href="tel:+919581400055" class="hover:text-[var(--cyan)] transition">+91 9581400055</a></div>
+                  <div class="text-slate-300"><span class="font-semibold">Email Us:</span> <a href="mailto:support@thinkpluseducation.com" class="hover:text-[var(--cyan)] transition">support@thinkpluseducation.com</a></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- footer -->
+            <footer class="py-12 mt-16 border-t border-white/6">
+              <div class="max-w-7xl mx-auto px-6 text-center text-slate-300">
+                <div class="mb-4">© 2025 ThinkPlus. All Rights Reserved.</div>
+                <div class="text-sm">This UI is inspired by a modern SaaS aesthetic; animations and layout are original code.</div>
+              </div>
+            </footer>
+          </main>
+
+          <!-- modal (video demo placeholder) -->
+          <div id="demo-modal" class="fixed inset-0 hidden items-center justify-center z-50">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+            <div class="relative max-w-3xl w-full mx-6 glass rounded-2xl p-6 z-60">
+              <button id="close-demo" class="absolute top-4 right-4 text-slate-300 hover:text-white text-2xl">✕</button>
+              <div class="aspect-video bg-black rounded overflow-hidden">
+                <div class="flex items-center justify-center h-full text-slate-400">Demo video / embed goes here</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- JS: 3D Background + particles + GSAP animations -->
+          <script>
+            // ---- 3D BACKGROUND SCENE ----
+            let mode = 'dark';
+            let scene, camera, renderer, objects = [], lights = [];
+
+            function setupScene(theme) {
+              if(scene){ 
+                while(scene.children.length) scene.remove(scene.children[0]);
+                objects = [];
+                lights = [];
+              }
+              if(!scene){
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+                camera.position.set(0, 0, 7);
+                renderer = new THREE.WebGLRenderer({canvas:document.getElementById('bg3d-canvas'), alpha: true, antialias: true});
+                renderer.setSize(window.innerWidth, window.innerHeight, false);
+              }
+
+              let amb, dir;
+              if(theme === 'light'){
+                amb = new THREE.AmbientLight(0xf9fafb, 0.7);
+                scene.background = new THREE.Color(0xecf1fc);
+                dir = new THREE.DirectionalLight(0x5ed0f8, 0.34);
+                dir.position.set(0, 1, 2);
+              } else {
+                amb = new THREE.AmbientLight(0x7c3aed, 0.49);
+                scene.background = new THREE.Color(0x050813);
+                dir = new THREE.DirectionalLight(0x06b6d4, 0.25);
+                dir.position.set(0, 1, 1);
+              }
+              scene.add(amb); lights.push(amb);
+              scene.add(dir); lights.push(dir);
+
+              for(let i=0;i<12;i++){
+                const geo = i % 2 === 0 ? new THREE.SphereGeometry(0.65 + Math.random()*0.36, 44, 24) : new THREE.TorusGeometry(0.31 + Math.random()*0.25, 0.11, 16, 44);
+                const isLight = theme === 'light';
+                const mat = new THREE.MeshPhysicalMaterial({
+                  color: i % 2 === 0 ? (isLight? 0x6e65fa : 0x7c3aed) : (isLight? 0x53b1fd : 0x06b6d4),
+                  roughness: 0.39,
+                  metalness: 0.25,
+                  clearcoat: 0.6,
+                  transparent: true,
+                  opacity: 0.17 + Math.random()*0.18,
+                  emissive: i % 2 === 0 ? (isLight? 0xe0dafb : 0x7c3aed) : (isLight? 0xcfecfd : 0x06b6d4),
+                  emissiveIntensity: isLight ? 0.12 + Math.random()*0.18 : 0.15 + Math.random()*0.12
+                });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set((Math.random()-0.5)*7, (Math.random()-0.5)*5, (Math.random()-0.5)*3.5);
+                mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+                scene.add(mesh);
+                objects.push(mesh);
+              }
+            }
+
+            function animateBG() {
+              if(objects){
+                objects.forEach((obj,i)=>{
+                  obj.position.y += Math.sin(Date.now()*0.001+i)*0.004;
+                  obj.rotation.y += 0.005 + i*0.001;
+                  obj.rotation.x += 0.003 + i*0.001;
+                });
+              }
+              camera.position.z = 7 + Math.sin(Date.now()*0.0004)*0.5;
+              if(camera && renderer && scene) renderer.render(scene, camera);
+              requestAnimationFrame(animateBG);
+            }
+
+            window.addEventListener('resize', function(){
+              if(camera && renderer){
+                camera.aspect = window.innerWidth/window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight, false);
+              }
+            });
+
+            // Init dark scene at start
+            setupScene('dark');
+            animateBG();
+
+            // Theme toggle button
+            document.getElementById('theme-toggle').onclick = function() {
+              mode = (mode === 'dark') ? 'light' : 'dark';
+              document.body.classList.toggle('light-mode');
+              setupScene(mode);
+            };
+
+            // --- particles canvas (glow particles) ---
+            (function initParticles(){
+              const c = document.getElementById('particle-canvas');
+              const ctx = c.getContext('2d');
+              let w = c.width = innerWidth, h = c.height = innerHeight;
+              const N = Math.floor((w*h)/70000) + 30;
+              const particles = [];
+              for(let i=0;i<N;i++){
+                particles.push({
+                  x: Math.random()*w, 
+                  y: Math.random()*h, 
+                  r: 8 * Math.random() + 1.2, 
+                  vx: (Math.random()-0.5)*0.1, 
+                  vy: (Math.random()-0.5)*0.1, 
+                  hue: Math.random()*360
+                });
+              }
+              function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; }
+              addEventListener('resize', resize);
+              
+              function draw(){
+                ctx.clearRect(0,0,w,h);
+                for(const p of particles){
+                  p.x += p.vx; 
+                  p.y += p.vy;
+                  if(p.x < -50) p.x = w+50; 
+                  if(p.x > w+50) p.x = -50;
+                  if(p.y < -50) p.y = h+50; 
+                  if(p.y > h+50) p.y = -50;
+                  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+                  g.addColorStop(0, 'rgba(124,58,237,0.12)');
+                  g.addColorStop(0.4, 'rgba(6,182,212,0.06)');
+                  g.addColorStop(1, 'rgba(6,182,212,0)');
+                  ctx.fillStyle = g;
+                  ctx.beginPath(); 
+                  ctx.arc(p.x, p.y, p.r*8, 0, Math.PI*2); 
+                  ctx.fill();
+                }
+                requestAnimationFrame(draw);
+              }
+              draw();
+            })();
+
+            // --- GSAP animations ---
+            gsap.registerPlugin(ScrollTrigger);
+            
+            // Hero intro
+            gsap.from(".hero-title", {y: 24, opacity:0, duration:0.9, ease:"power3.out", delay:0.08});
+            gsap.from("#hero p", {y: 18, opacity:0, duration:0.9, ease:"power3.out", delay:0.18});
+            gsap.from("#hero .accent, #hero .cta, #hero .glass", {opacity:0, y: 10, duration:0.8, stagger:0.06, delay:0.28});
+            
+            // Breathing play button
+            gsap.to("#playBtn", {scale:1.06, repeat:-1, yoyo:true, duration:1.4, ease:"sine.inOut"});
+            
+            // Feature cards reveal with stagger
+            gsap.utils.toArray('[data-animate]').forEach((el, i) => {
+              gsap.from(el, {
+                scrollTrigger: { trigger: el, start: "top 85%" },
+                y: 30, opacity: 0, duration: 0.9, ease: "power3.out", delay: i*0.06
+              });
+            });
+            
+            // Tilt physics for interactive feel
+            const tiltEls = document.querySelectorAll('.tilt');
+            tiltEls.forEach(el => {
+              el.addEventListener('pointermove', (ev) => {
+                const rect = el.getBoundingClientRect();
+                const cx = rect.left + rect.width/2;
+                const cy = rect.top + rect.height/2;
+                const dx = (ev.clientX - cx) / rect.width;
+                const dy = (ev.clientY - cy) / rect.height;
+                gsap.to(el, {
+                  rotationY: dx * 6, 
+                  rotationX: -dy * 6, 
+                  transformPerspective:900, 
+                  transformOrigin:"center", 
+                  duration:0.35, 
+                  ease:"power3.out"
+                });
+              });
+              el.addEventListener('pointerleave', () => {
+                gsap.to(el, {rotationY:0, rotationX:0, duration:0.6, ease:"power2.out"});
+              });
+            });
+            
+            // Subtle parallax for float glows
+            gsap.to('.float', {
+              yPercent: -8,
+              ease: "none",
+              scrollTrigger: { trigger: document.body, start: 0, end: "max", scrub: 0.6 }
+            });
+            
+            // Header hide / show on scroll
+            (function headerScroll(){
+              let last = 0;
+              const header = document.querySelector('header');
+              addEventListener('scroll', () => {
+                const cur = pageYOffset;
+                if (cur > last && cur > 80) gsap.to(header, {y:-86, duration:0.35, ease:"power2.out"});
+                else gsap.to(header, {y:0, duration:0.35, ease:"power2.out"});
+                last = cur;
+              });
+            })();
+            
+            // Demo modal open / close
+            const modal = document.getElementById('demo-modal');
+            const playBtn = document.getElementById('playBtn');
+            
+            if(playBtn) {
+              playBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+              });
+            }
+            
+            document.getElementById('close-demo').addEventListener('click', () => {
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+            });
+            
+            modal.addEventListener('click', (e) => { 
+              if(e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+              }
+            });
+            
+            // Accessibility: Escape key closes modal
+            document.addEventListener('keyup', (e) => {
+              if(e.key === "Escape") {
+                modal.classList.add('hidden');
+              if(e.key === "Escape") {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+              }
+           } });
+          </script>
+        </body>
+      </html>
